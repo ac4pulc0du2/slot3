@@ -1,0 +1,78 @@
+let today = new Date().toDateString();
+let storedDate = sessionStorage.getItem('date');
+if (storedDate !== today) {
+    sessionStorage.setItem('date', today);
+    sessionStorage.setItem('attempts', '0');
+}
+
+let attempts = parseInt(sessionStorage.getItem('attempts'));
+
+function updateAttempts() {
+    document.getElementById('attemptsLeft').innerText = `Tentativi rimasti: ${3 - attempts}`;
+}
+
+function spinSlot() {
+    if (attempts >= 3) {
+        alert('Hai raggiunto il numero massimo di tentativi per oggi!');
+        document.getElementById('reviewModal').style.display = 'block';
+        return;
+    }
+
+    attempts++;
+    sessionStorage.setItem('attempts', attempts);
+
+    let symbols = ['🍕', '🍺', '🍝', '☕', '🍷'];
+    let results = [];
+    let prizeMessage = '';  // Aggiungi questa variabile per memorizzare il premio vinto
+    let reels = document.querySelectorAll('.slot-reel span');
+    reels.forEach((span, index) => {
+        let delay = Math.random() * 500 + 500;
+        setTimeout(() => {
+            span.style.transition = 'transform 1.5s ease-out';
+            span.style.transform = `translateY(100%)`;
+            setTimeout(() => {
+                results[index] = symbols[Math.floor(Math.random() * symbols.length)];
+                span.innerText = results[index];
+                span.style.transform = `translateY(0)`;
+            }, 500);
+        }, delay);
+    });
+
+    setTimeout(() => {
+        if (results[0] === results[1] && results[1] === results[2]) {
+            document.getElementById('winMessage').style.display = 'block';
+            // Aggiungi logica per determinare il premio vinto
+            if (results[0] === '🍕') {
+                prizeMessage = 'Hai vinto una pizza 🍕';
+            } else if (results[0] === '🍺') {
+                prizeMessage = 'Hai vinto una birra 🍺';
+            } else if (results[0] === '🍝') {
+                prizeMessage = 'Hai vinto un primo 🍝';
+            } else if (results[0] === '☕') {
+                prizeMessage = 'Hai vinto un caffè ☕';
+            } else if (results[0] === '🍷') {
+                prizeMessage = 'Hai vinto un 1/2 l di vino 🍷';
+            }
+            document.getElementById('prizeMessage').innerText = prizeMessage; // Mostra il premio vinto
+        }
+        updateAttempts();
+    }, 2000);
+}
+
+function closeModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+}
+
+document.getElementById('spinButton').addEventListener('click', spinSlot);
+document.getElementById('claimPrize').addEventListener('click', () => {
+    window.open("https://search.google.com/local/writereview?placeid=ChIJZbCyTR88NxMRlMHyz8ovQ2Y", "_blank");
+    document.getElementById('reviewModal').style.display = 'none';
+});
+
+// Mostra il messaggio del premio vinto sotto il bottone "Scrivi una recensione"
+document.getElementById('winMessage').innerHTML = `
+    <h2>🎉 Hai vinto! 🎉</h2>
+    <p id="prizeMessage"></p>
+    <button id="claimPrize">Riscatta il premio 🎁</button>
+`;
+updateAttempts();
